@@ -8,26 +8,71 @@ import (
 	"strings"
 
 	"github.com/qri-io/qri/config"
+	"github.com/qri-io/qri/repo"
 	"github.com/qri-io/qri/repo/buildrepo"
 	"github.com/qri-io/qri/repo/gen"
 )
 
-// SetupParams encapsulates arguments for Setup
-type SetupParams struct {
-	Config              *config.Config
-	QriRepoPath         string
-	ConfigFilepath      string
-	SetupIPFS           bool
-	Register            bool
-	IPFSFsPath          string
-	SetupIPFSConfigData []byte
-	Generator           gen.CryptoGenerator
+// QriRepoExists retursn nile if qri repo is defined at the given path, without
+// opening the repo itself
+func QriRepoExists(path string) error {
+	// for now this just checks for an existing config file
+	_, err := os.Stat(filepath.Join(path, "config.yaml"))
+	if !os.IsNotExist(err) {
+		return nil
+	}
+	return repo.ErrNoRepo
 }
 
-// Setup provisions a new qri instance, it intentionally doesn't conform to the RPC function signature
-// because remotely invoking setup doesn't make much sense
+// SetupParams encapsulates arguments for Setup
+type SetupParams struct {
+	// a configuration is required. defaults to config.DefaultConfig()
+	Config *config.Config
+	// where to initialize qri repository
+	QriRepoPath string
+	// submit new username to the configured registry
+	Register bool
+	// overwrite any existing repo, erasing all data and deleting private keys
+	// this is almost always a bad idea
+	Overwrite bool
+	// attempt to setup an IFPS repo
+	SetupIPFS           bool
+	IPFSFsPath          string
+	SetupIPFSConfigData []byte
+	// setup requires a crypto source
+	Generator gen.CryptoGenerator
+}
+
+// Setup provisions a new qri instance, it intentionally doesn't conform to the
+// RPC function signature because remotely invoking setup doesn't make sense
 func Setup(p SetupParams) error {
-	if err := setup(p.QriRepoPath, p.ConfigFilepath, p.Config, p.Register); err != nil {
+	if err := QriRepoExists(p.QriRepoPath); err == nil && !p.Overwrite {
+		return fmt.Errorf("repo already initialized")
+	}
+
+	cfg := p.Config
+	if cfg == nil {
+		cfg = config.DefaultConfig()
+	}
+
+	if cfg.P2P == nil {
+		cfg.P2P = config.DefaultP2P()
+	}
+	if cfg.P2P.PrivKey == "" {
+		privKey, peerID := p.Generator.GeneratePrivateKeyAndPeerID()
+		cfg.P2P.PrivKey = privKey
+		cfg.P2P.PeerID = peerID
+	}
+	if cfg.Profile == nil {
+		cfg.Profile = config.DefaultProfile()
+	}
+	if cfg.Profile.PrivKey == "" {
+		cfg.Profile.PrivKey = cfg.P2P.PrivKey
+		cfg.Profile.ID = cfg.P2P.PeerID
+		cfg.Profile.Peername = p.Generator.GenerateNickname(cfg.P2P.PeerID)
+	}
+
+	if err := setup(p.QriRepoPath, p.Config, p.Register); err != nil {
 		return err
 	}
 
@@ -42,8 +87,6 @@ func Setup(p SetupParams) error {
 		}
 	}
 
-	// Config = p.Config
-	// ConfigFilepath = p.ConfigFilepath
 	return nil
 }
 
@@ -62,7 +105,7 @@ func Teardown(p TeardownParams) error {
 }
 
 // setup provisions a new qri instance
-func setup(repoPath, cfgPath string, cfg *config.Config, register bool) error {
+func setup(repoPath string, cfg *config.Config, register bool) error {
 	if err := cfg.Validate(); err != nil {
 		return fmt.Errorf("invalid configuration: %s", err.Error())
 	}
@@ -87,6 +130,8 @@ func setup(repoPath, cfgPath string, cfg *config.Config, register bool) error {
 	if err := os.MkdirAll(repoPath, os.ModePerm); err != nil {
 		return fmt.Errorf("error creating qri repo directory: %s, path: %s", err.Error(), repoPath)
 	}
+
+	cfgPath := filepath.Join(repoPath, "config.yaml")
 
 	if err := cfg.WriteToFile(cfgPath); err != nil {
 		return fmt.Errorf("error writing config: %s", err.Error())

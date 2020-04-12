@@ -113,12 +113,6 @@ func (o *SetupOptions) Run(f Factory) error {
 		return nil
 	}
 
-	if QRIRepoInitialized(o.QriRepoPath) && !o.Overwrite {
-		// use --overwrite to overwrite this repo, erasing all data and deleting your account for good
-		// this is usually a terrible idea
-		return fmt.Errorf("repo already initialized")
-	}
-
 	if err := o.DoSetup(f); err != nil {
 		return err
 	}
@@ -151,23 +145,6 @@ func (o *SetupOptions) DoSetup(f Factory) (err error) {
 		}
 	}
 
-	if cfg.P2P == nil {
-		cfg.P2P = config.DefaultP2P()
-	}
-	if cfg.P2P.PrivKey == "" {
-		privKey, peerID := o.Generator.GeneratePrivateKeyAndPeerID()
-		cfg.P2P.PrivKey = privKey
-		cfg.P2P.PeerID = peerID
-	}
-	if cfg.Profile == nil {
-		cfg.Profile = config.DefaultProfile()
-	}
-	if cfg.Profile.PrivKey == "" {
-		cfg.Profile.PrivKey = cfg.P2P.PrivKey
-		cfg.Profile.ID = cfg.P2P.PeerID
-		cfg.Profile.Peername = o.Generator.GenerateNickname(cfg.P2P.PeerID)
-	}
-
 	if o.Peername != "" {
 		cfg.Profile.Peername = o.Peername
 	} else if cfg.Profile.Peername == doggos.DoggoNick(cfg.Profile.ID) && !o.Anonymous {
@@ -181,13 +158,12 @@ func (o *SetupOptions) DoSetup(f Factory) (err error) {
 	}
 
 	p := lib.SetupParams{
-		Config:         cfg,
-		QriRepoPath:    o.QriRepoPath,
-		ConfigFilepath: filepath.Join(o.QriRepoPath, "config.yaml"),
-		SetupIPFS:      o.IPFS,
-		IPFSFsPath:     o.IpfsFsPath,
-		Register:       o.Registry == "none",
-		Generator:      o.Generator,
+		Config:      cfg,
+		QriRepoPath: o.QriRepoPath,
+		SetupIPFS:   o.IPFS,
+		IPFSFsPath:  o.IpfsFsPath,
+		Register:    o.Registry == "none",
+		Generator:   o.Generator,
 	}
 
 	if o.IPFSConfigData != "" {
@@ -219,13 +195,6 @@ func (o *SetupOptions) CreateAndDisplayDoggo() error {
 	dognick := o.Generator.GenerateNickname(peerID)
 	printSuccess(o.Out, dognick)
 	return nil
-}
-
-// QRIRepoInitialized checks to see if a repository has been initialized at $QRI_PATH
-func QRIRepoInitialized(path string) bool {
-	// for now this just checks for an existing config file
-	_, err := os.Stat(filepath.Join(path, "config.yaml"))
-	return !os.IsNotExist(err)
 }
 
 func mapEnvVars(vars map[string]*string) {
