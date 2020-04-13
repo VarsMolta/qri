@@ -5,7 +5,6 @@ import (
 	"sync"
 	"testing"
 
-	// pstore "gx/ipfs/QmTTJcDL3gsnGDALjh2fDGg1onGRUdVgNL2hU2WEZcVrMX/go-libp2p-peerstore"
 	peer "github.com/libp2p/go-libp2p-core/peer"
 	p2ptest "github.com/qri-io/qri/p2p/test"
 )

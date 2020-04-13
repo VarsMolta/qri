@@ -76,10 +76,6 @@ type QriNode struct {
 	// local http handlers/websockets/stdio, but these streams are meant for
 	// local feedback as opposed to p2p connections
 	LocalStreams ioes.IOStreams
-
-	// TODO - waiting on next IPFS release
-	// autoNAT service
-	// autonat *autonat.AutoNATService
 }
 
 // Assert that conversions needed by the tests are valid.
@@ -171,14 +167,6 @@ func (n *QriNode) GoOnline() (err error) {
 	// the distributed web that this node supports Qri. for more info on
 	// multistreams  check github.com/multformats/go-multistream
 	n.host.SetStreamHandler(QriProtocolID, n.QriStreamHandler)
-
-	// TODO - wait for new IPFS release
-	// if n.cfg.AutoNAT {
-	// 	n.autonat, err = autonat.NewAutoNATService(n.ctx, n.host)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
 
 	p, err := n.Repo.Profile()
 	if err != nil {
@@ -310,13 +298,6 @@ func (n *QriNode) Context() context.Context {
 	}
 	return n.ctx
 }
-
-// TODO - finish. We need a proper termination & cleanup process
-// func (n *QriNode) Close() error {
-// 	if node, err := n.IPFSNode(); err == nil {
-// 		return node.Close()
-// 	}
-// }
 
 // makeBasicHost creates a LibP2P host from a NodeCfg
 func makeBasicHost(ctx context.Context, ps pstore.Peerstore, p2pconf *config.P2P) (host.Host, error) {
