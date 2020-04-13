@@ -28,6 +28,10 @@ https://github.com/qri-io/qri/issues`,
 			if err == nil && noColor {
 				setNoColor(noColor)
 			}
+			// if it's a tty terminal disable color
+			if ioStreams.IsTerminal() {
+				setNoColor(noColor)
+			}
 			noPrompt, err := cmd.Flags().GetBool("no-prompt")
 			if err == nil && noPrompt {
 				setNoPrompt(noPrompt)
