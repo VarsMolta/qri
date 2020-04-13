@@ -10,6 +10,7 @@ import (
 	"github.com/qri-io/qri/config"
 	cfgtest "github.com/qri-io/qri/config/test"
 	"github.com/qri-io/qri/dsref"
+	"github.com/qri-io/qri/event"
 	"github.com/qri-io/qri/p2p"
 	p2ptest "github.com/qri-io/qri/p2p/test"
 	"github.com/qri-io/qri/repo"
@@ -135,7 +136,7 @@ func newMemRepoTestNode(t *testing.T) *p2p.QriNode {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	node, err := p2p.NewQriNode(mr, config.DefaultP2PForTesting())
+	node, err := p2p.NewQriNode(mr, config.DefaultP2PForTesting(), &event.NilPublisher{})
 	if err != nil {
 		t.Fatal(err.Error())
 	}

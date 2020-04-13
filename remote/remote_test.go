@@ -17,6 +17,7 @@ import (
 	"github.com/qri-io/qri/config"
 	cfgtest "github.com/qri-io/qri/config/test"
 	"github.com/qri-io/qri/dsref"
+	"github.com/qri-io/qri/event"
 	"github.com/qri-io/qri/p2p"
 	p2ptest "github.com/qri-io/qri/p2p/test"
 	"github.com/qri-io/qri/repo"
@@ -292,7 +293,7 @@ func qriNode(t *testing.T, peername string, node *core.IpfsNode, pi *cfgtest.Pee
 		t.Fatal(err)
 	}
 
-	qriNode, err := p2p.NewQriNode(repo, config.DefaultP2PForTesting())
+	qriNode, err := p2p.NewQriNode(repo, config.DefaultP2PForTesting(), &event.NilPublisher{})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -18,6 +18,7 @@ import (
 	golog "github.com/ipfs/go-log"
 	"github.com/qri-io/qri/base/dsfs"
 	"github.com/qri-io/qri/config"
+	"github.com/qri-io/qri/event"
 	"github.com/qri-io/qri/lib"
 	"github.com/qri-io/qri/p2p"
 	"github.com/qri-io/qri/repo"
@@ -78,7 +79,7 @@ func newTestInstanceWithProfileFromNode(node *p2p.QriNode) *lib.Instance {
 func newTestNodeWithNumDatasets(t *testing.T, num int) (node *p2p.QriNode, teardown func()) {
 	var r repo.Repo
 	r, teardown = newTestRepo(t)
-	node, err := p2p.NewQriNode(r, config.DefaultP2PForTesting())
+	node, err := p2p.NewQriNode(r, config.DefaultP2PForTesting(), &event.NilPublisher{})
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -194,7 +195,7 @@ func TestServerReadOnlyRoutes(t *testing.T) {
 		cfg.API.ReadOnly = false
 	}()
 
-	node, err := p2p.NewQriNode(r, cfg.P2P)
+	node, err := p2p.NewQriNode(r, cfg.P2P, &event.NilPublisher{})
 	if err != nil {
 		t.Fatal(err.Error())
 	}

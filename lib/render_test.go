@@ -14,6 +14,7 @@ import (
 	"github.com/qri-io/qri/base"
 	"github.com/qri-io/qri/base/dsfs"
 	"github.com/qri-io/qri/config"
+	"github.com/qri-io/qri/event"
 	"github.com/qri-io/qri/p2p"
 	"github.com/qri-io/qri/repo"
 	reporef "github.com/qri-io/qri/repo/ref"
@@ -146,7 +147,7 @@ func newRenderTestRunner(t *testing.T, testName string) *renderTestRunner {
 		panic(err)
 	}
 
-	r.Node, err = p2p.NewQriNode(r.Repo, config.DefaultP2PForTesting())
+	r.Node, err = p2p.NewQriNode(r.Repo, config.DefaultP2PForTesting(), &event.NilPublisher{})
 	if err != nil {
 		panic(err)
 	}

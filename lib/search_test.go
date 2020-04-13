@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/qri-io/qri/config"
+	"github.com/qri-io/qri/event"
 	"github.com/qri-io/qri/p2p"
 	"github.com/qri-io/qri/registry/regclient"
 	testrepo "github.com/qri-io/qri/repo/test"
@@ -21,7 +22,7 @@ func TestSearch(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error allocating test repo: %s", err.Error())
 	}
-	node, err := p2p.NewQriNode(mr, config.DefaultP2PForTesting())
+	node, err := p2p.NewQriNode(mr, config.DefaultP2PForTesting(), &event.NilPublisher{})
 	if err != nil {
 		t.Fatal(err.Error())
 	}

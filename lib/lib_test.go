@@ -19,6 +19,7 @@ import (
 	"github.com/qri-io/qri/base"
 	"github.com/qri-io/qri/base/dsfs"
 	"github.com/qri-io/qri/config"
+	"github.com/qri-io/qri/event"
 	"github.com/qri-io/qri/p2p"
 	p2ptest "github.com/qri-io/qri/p2p/test"
 	"github.com/qri-io/qri/repo"
@@ -213,7 +214,7 @@ func newTestRunner(t *testing.T) (tr *testRunner, cleanup func()) {
 	if err != nil {
 		t.Fatalf("error allocating test repo: %s", err.Error())
 	}
-	node, err := p2p.NewQriNode(mr, config.DefaultP2PForTesting())
+	node, err := p2p.NewQriNode(mr, config.DefaultP2PForTesting(), &event.NilPublisher{})
 	if err != nil {
 		t.Fatal(err.Error())
 	}
